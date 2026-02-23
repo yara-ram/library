@@ -8,6 +8,10 @@ const router = express.Router();
 router.get("/", requireAuth, requireRole("admin"), async (req, res, next) => {
   try {
     const users = await listUsers();
+    const staffUsers = users.filter((user) => user.role === "admin" || user.role === "librarian");
+    const toLogRow = (user) => ({ id: user.id, email: user.email, role: user.role });
+    console.log("Users:", users.map(toLogRow));
+    console.log("Staff:", staffUsers.map(toLogRow));
     res.json({ users });
   } catch (err) {
     next(err);

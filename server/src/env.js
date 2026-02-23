@@ -11,17 +11,8 @@ const EnvSchema = z.object({
   SESSION_SECRET: z.string().min(16),
   CLIENT_URL: z.string().url(),
 
-  DEV_LOGIN_ENABLED: z.string().optional(),
   COOKIE_SECURE: z.string().optional(),
   COOKIE_SAMESITE: z.string().optional(),
-
-  GOOGLE_CLIENT_ID: z.string().optional().default(""),
-  GOOGLE_CLIENT_SECRET: z.string().optional().default(""),
-  GOOGLE_CALLBACK_URL: z.string().optional().default(""),
-
-  GITHUB_CLIENT_ID: z.string().optional().default(""),
-  GITHUB_CLIENT_SECRET: z.string().optional().default(""),
-  GITHUB_CALLBACK_URL: z.string().optional().default(""),
 
   ADMIN_EMAILS: z.string().optional().default(""),
 
@@ -34,7 +25,6 @@ export function getEnv() {
 
   return {
     ...env,
-    DEV_LOGIN_ENABLED: boolFromString(env.DEV_LOGIN_ENABLED, false),
     COOKIE_SECURE: boolFromString(env.COOKIE_SECURE, false),
     COOKIE_SAMESITE: env.COOKIE_SAMESITE || "lax",
     ADMIN_EMAILS: (env.ADMIN_EMAILS || "")

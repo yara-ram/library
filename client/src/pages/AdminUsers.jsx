@@ -38,19 +38,7 @@ export default function AdminUsers() {
               <div className="text-sm font-medium text-slate-900">{u.name || u.email || `User ${u.id}`}</div>
               <div className="text-xs text-slate-600">{u.email || "No email"}</div>
             </div>
-            <select
-              className="rounded border px-3 py-2 text-sm"
-              value={u.role}
-              onChange={async (e) => {
-                const role = e.target.value;
-                await api.setUserRole(u.id, role);
-                load();
-              }}
-            >
-              <option value="admin">admin</option>
-              <option value="librarian">librarian</option>
-              <option value="member">member</option>
-            </select>
+            <div className="rounded border px-3 py-2 text-sm text-slate-700">member</div>
           </div>
         ))}
         {!loading && users.length === 0 ? <div className="text-sm text-slate-600">No users.</div> : null}

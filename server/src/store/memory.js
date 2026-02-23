@@ -2,68 +2,61 @@ const state = {
   nextUserId: 1,
   nextBookId: 1,
   usersById: new Map(),
-  usersByProviderKey: new Map(),
+  usersByEmail: new Map(),
   booksById: new Map()
 };
-
-function providerKey(provider, providerId) {
-  return `${provider}:${providerId}`;
-}
 
 function nowIso() {
   return new Date().toISOString();
 }
 
-export async function upsertOAuthUser({ provider, providerId, email, name, adminEmails }) {
-  const key = providerKey(provider, providerId);
-  const existingId = state.usersByProviderKey.get(key);
+function toPublicUser(user) {
+  if (!user) return null;
+  // eslint-disable-next-line no-unused-vars
+  const { password_hash, ...rest } = user;
+  return rest;
+}
 
-  const normalizedEmail = email ? email.toLowerCase() : null;
-  const isAdmin = normalizedEmail && adminEmails.includes(normalizedEmail);
+export async function getUserByEmail(email) {
+  if (!email) return null;
+  return state.usersByEmail.get(email.toLowerCase()) || null;
+}
 
-  if (existingId) {
-    const existing = state.usersById.get(existingId);
-    const updated = {
-      ...existing,
-      email: normalizedEmail,
-      name: name || existing.name || null
-    };
-    state.usersById.set(existingId, updated);
-    return updated;
-  }
+export async function createLocalUser({ email, name, passwordHash, adminEmails }) {
+  const normalizedEmail = (email || "").toLowerCase();
+  if (!normalizedEmail) throw new Error("email_required");
+  if (state.usersByEmail.has(normalizedEmail)) throw new Error("email_taken");
 
   const user = {
     id: state.nextUserId++,
-    provider,
-    provider_id: providerId,
     email: normalizedEmail,
     name: name || null,
-    role: isAdmin ? "admin" : "member",
+    role: "member",
+    password_hash: passwordHash,
     created_at: nowIso()
   };
 
   state.usersById.set(user.id, user);
-  state.usersByProviderKey.set(key, user.id);
-  return user;
+  state.usersByEmail.set(normalizedEmail, user);
+  return toPublicUser(user);
 }
 
-export async function upsertDevUser({ email, name, role = "admin" }) {
-  const normalizedEmail = (email || "").toLowerCase();
-  return upsertOAuthUser({
-    provider: "dev",
-    providerId: normalizedEmail,
-    email: normalizedEmail,
-    name: name || normalizedEmail.split("@")[0] || "dev",
-    adminEmails: role === "admin" ? [normalizedEmail] : []
-  }).then((u) => ({ ...u, role }));
+export async function verifyLocalPassword({ email, password, compare }) {
+  const user = await getUserByEmail(email);
+  if (!user) return null;
+  const ok = await compare(password, user.password_hash);
+  if (!ok) return null;
+  return toPublicUser(user);
 }
 
 export async function getUserById(id) {
-  return state.usersById.get(Number(id)) || null;
+  return toPublicUser(state.usersById.get(Number(id)) || null);
 }
 
 export async function listUsers() {
-  return Array.from(state.usersById.values()).sort(
+  return Array.from(state.usersById.values())
+    .map(toPublicUser)
+    .sort(
     (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   );
 }
@@ -71,9 +64,10 @@ export async function listUsers() {
 export async function setUserRole({ id, role }) {
   const user = state.usersById.get(Number(id));
   if (!user) return null;
-  const updated = { ...user, role };
+  const updated = { ...user, role: "member" };
   state.usersById.set(Number(id), updated);
-  return updated;
+  state.usersByEmail.set(updated.email, updated);
+  return toPublicUser(updated);
 }
 
 function enrichBorrower(book) {
@@ -191,4 +185,3 @@ export async function checkinBook({ id }) {
   state.booksById.set(Number(id), updated);
   return updated;
 }
-

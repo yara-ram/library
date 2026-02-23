@@ -14,14 +14,13 @@ function RequireAuth({ user, children }) {
 
 export default function App() {
   const { loading, user } = useAuth();
-  const devLoginEnabled = import.meta.env.VITE_DEV_LOGIN_ENABLED === "true";
 
   if (loading) return <div className="p-6 text-sm text-slate-600">Loading…</div>;
 
   return (
     <Layout user={user}>
       <Routes>
-        <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login devLoginEnabled={devLoginEnabled} />} />
+        <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
         <Route
           path="/"
           element={
@@ -50,7 +49,7 @@ export default function App() {
           path="/admin/users"
           element={
             <RequireAuth user={user}>
-              {user?.role === "admin" ? <AdminUsers /> : <Navigate to="/" replace />}
+              <AdminUsers />
             </RequireAuth>
           }
         />

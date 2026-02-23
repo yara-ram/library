@@ -17,7 +17,7 @@ export default function Books({ user }) {
   const [books, setBooks] = useState([]);
   const [error, setError] = useState("");
 
-  const isStaff = useMemo(() => ["admin", "librarian"].includes(user?.role), [user?.role]);
+  const isStaff = useMemo(() => Boolean(user), [user]);
 
   async function load() {
     setLoading(true);
@@ -64,8 +64,7 @@ export default function Books({ user }) {
       <div className="grid gap-3">
         {books.map((b) => {
           const available = b.status === "available";
-          const canReturn =
-            b.status === "checked_out" && (Number(b.checked_out_by) === Number(user.id) || isStaff);
+          const canReturn = b.status === "checked_out";
           return (
             <div key={b.id} className="rounded-lg border bg-white p-4">
               <div className="flex items-start justify-between gap-4">
@@ -108,14 +107,12 @@ export default function Books({ user }) {
                     </button>
                   ) : null}
 
-                  {isStaff ? (
-                    <Link
-                      className="rounded border px-3 py-2 text-center text-sm text-slate-700"
-                      to={`/books/${b.id}/edit`}
-                    >
-                      Edit
-                    </Link>
-                  ) : null}
+                  <Link
+                    className="rounded border px-3 py-2 text-center text-sm text-slate-700"
+                    to={`/books/${b.id}/edit`}
+                  >
+                    Edit
+                  </Link>
                 </div>
               </div>
               {b.description ? <p className="mt-3 text-sm text-slate-700">{b.description}</p> : null}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
 
@@ -13,7 +13,6 @@ export default function BookForm({ user }) {
   const navigate = useNavigate();
   const params = useParams();
   const isEdit = Boolean(params.id);
-  const isStaff = useMemo(() => ["admin", "librarian"].includes(user?.role), [user?.role]);
 
   const [form, setForm] = useState({
     title: "",
@@ -46,14 +45,6 @@ export default function BookForm({ user }) {
       .catch((e) => setError(e.message || "Failed to load"))
       .finally(() => setLoading(false));
   }, [isEdit, params.id]);
-
-  if (!isStaff) {
-    return (
-      <div className="rounded border bg-white p-4 text-sm text-slate-700">
-        Forbidden. <Link className="underline" to="/">Go back</Link>
-      </div>
-    );
-  }
 
   return (
     <div className="rounded-lg border bg-white p-6">

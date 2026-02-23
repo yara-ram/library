@@ -44,7 +44,7 @@ router.get("/:id", requireAuth, async (req, res, next) => {
   }
 });
 
-router.post("/", requireAuth, requireRole("admin", "librarian"), async (req, res, next) => {
+router.post("/", requireAuth, async (req, res, next) => {
   try {
     const book = BookUpsertSchema.parse(req.body);
     const created = await createBook(book);
@@ -54,7 +54,7 @@ router.post("/", requireAuth, requireRole("admin", "librarian"), async (req, res
   }
 });
 
-router.put("/:id", requireAuth, requireRole("admin", "librarian"), async (req, res, next) => {
+router.put("/:id", requireAuth, async (req, res, next) => {
   try {
     const id = Number(req.params.id);
     const book = BookUpsertSchema.parse(req.body);
@@ -66,7 +66,7 @@ router.put("/:id", requireAuth, requireRole("admin", "librarian"), async (req, r
   }
 });
 
-router.delete("/:id", requireAuth, requireRole("admin", "librarian"), async (req, res, next) => {
+router.delete("/:id", requireAuth, async (req, res, next) => {
   try {
     const id = Number(req.params.id);
     await deleteBook(id);
@@ -95,11 +95,6 @@ router.post("/:id/checkin", requireAuth, async (req, res, next) => {
     const id = Number(req.params.id);
     const current = await getBookById(id);
     if (!current) return res.status(404).json({ error: "not_found" });
-
-    const isBorrower =
-      current.checked_out_by && Number(current.checked_out_by) === Number(req.user.id);
-    const isStaff = ["admin", "librarian"].includes(req.user.role);
-    if (!isBorrower && !isStaff) return res.status(403).json({ error: "forbidden" });
 
     const updated = await checkinBook({ id });
     if (!updated) return res.status(409).json({ error: "not_checked_out" });

@@ -5,9 +5,14 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      "/api": "http://localhost:3001",
-      "/auth": "http://localhost:3001"
+      "/api": {
+        target: "http://localhost:3001",
+        changeOrigin: true
+      },
+      "/auth": {
+        target: "http://localhost:3001",
+        changeOrigin: true
+      }
     }
   }
 });
-

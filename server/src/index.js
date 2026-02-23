@@ -5,16 +5,14 @@ import express from "express";
 import session from "express-session";
 import helmet from "helmet";
 import morgan from "morgan";
-import passport from "passport";
 import { fileURLToPath } from "node:url";
 
 import { getEnv } from "./env.js";
-import { configurePassport } from "./auth/passport.js";
 import authRoutes from "./routes/auth.js";
 import bookRoutes from "./routes/books.js";
 import userRoutes from "./routes/users.js";
 import aiRoutes from "./routes/ai.js";
-import { upsertDevUser } from "./store/memory.js";
+import { getUserById } from "./store/memory.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -42,23 +40,16 @@ app.use(
   })
 );
 
-configurePassport();
-app.use(passport.initialize());
-app.use(passport.session());
-
-// Dev helper login (no SSO) — disabled by default and in Render blueprint.
-if (env.DEV_LOGIN_ENABLED) {
-  app.post("/auth/dev-login", async (req, res) => {
-    const email = (req.body?.email || "").toLowerCase();
-    if (!email) return res.status(400).json({ error: "email_required" });
-
-    const user = await upsertDevUser({ email, role: "admin" });
-    req.login(user, (err) => {
-      if (err) return res.status(500).json({ error: "login_failed" });
-      res.json({ user });
-    });
-  });
-}
+// Attach req.user from session (in-memory DB)
+app.use(async (req, _res, next) => {
+  try {
+    const userId = req.session?.userId;
+    req.user = userId ? await getUserById(userId) : null;
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
 
 app.use("/auth", authRoutes);
 app.use("/api/books", bookRoutes);

@@ -2,7 +2,7 @@
 Full-stack JS mini library management system with SSO auth, roles/permissions, book CRUD, check-in/out, search, and optional AI enrichment.
 
 ## Features
-- SSO authentication (Google and GitHub)
+- Local authentication (email + password)
 - Roles: `admin`, `librarian`, `member` (RBAC enforced on API + reflected in UI)
 - Books: add/edit/delete + metadata (title, author, ISBN, genre, year, description)
 - Check-out / check-in (borrow/return) with borrower tracking + due date
@@ -10,9 +10,9 @@ Full-stack JS mini library management system with SSO auth, roles/permissions, b
 - AI enrichment (optional): suggest genre/description/tags for a book
 
 ## Tech
-- Backend: Node.js + Express + PostgreSQL + Passport (OAuth) + sessions
+- Backend: Node.js + Express + in-memory store + sessions
 - Frontend: React (Vite) + Tailwind
-- Deployment: Render (single web service + Postgres)
+- Deployment: Render (single web service)
 
 ## Local setup
 ### 1) Install
@@ -31,14 +31,12 @@ cp .env.example .env
 Required for local login via SSO:
 - `SESSION_SECRET`
 - `CLIENT_URL` (default `http://localhost:5173`)
-- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` and/or `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`
-- `GOOGLE_CALLBACK_URL` and/or `GITHUB_CALLBACK_URL` (defaults in `.env.example` match local dev)
+Optional admin bootstrap:
+- `ADMIN_EMAILS` (comma-separated). If a user signs up with an email in this list, they become `admin`.
 
 Optional:
 - `OPENAI_API_KEY` for AI enrichment
-- `ADMIN_EMAILS` (comma-separated) to auto-assign `admin` role on first SSO login
 - `VITE_API_BASE_URL` (leave empty for Vite proxy in dev; keep empty in production)
-- `VITE_DEV_LOGIN_ENABLED` (UI toggle for the local dev login form)
 
 ### 3) Run
 ```bash
@@ -56,10 +54,9 @@ High-level steps:
 3. Set env vars in the Render dashboard:
    - `SESSION_SECRET`
    - `CLIENT_URL` (your Render app URL, e.g. `https://your-app.onrender.com`)
-   - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` and/or `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`
-   - `GOOGLE_CALLBACK_URL` / `GITHUB_CALLBACK_URL` (match the values configured in your OAuth apps)
+   - `ADMIN_EMAILS` (optional but recommended to ensure you have an admin)
    - `COOKIE_SECURE=true` and `COOKIE_SAMESITE=lax`
-   - (optional) `OPENAI_API_KEY`, `ADMIN_EMAILS`
+   - (optional) `OPENAI_API_KEY`
 
 ## Links
 - GitHub repo: (you’ll paste your repo URL after pushing)

@@ -25,8 +25,11 @@ async function request(path, options = {}) {
 
 export const api = {
   me: () => request("/auth/me"),
+  signup: ({ email, password, name }) =>
+    request("/auth/signup", { method: "POST", body: JSON.stringify({ email, password, name }) }),
+  login: ({ email, password }) =>
+    request("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
   logout: () => request("/auth/logout", { method: "POST", body: JSON.stringify({}) }),
-  devLogin: (email) => request("/auth/dev-login", { method: "POST", body: JSON.stringify({ email }) }),
 
   listBooks: (q) => request(`/api/books${q ? `?q=${encodeURIComponent(q)}` : ""}`),
   getBook: (id) => request(`/api/books/${id}`),
@@ -43,4 +46,3 @@ export const api = {
   listUsers: () => request("/api/users"),
   setUserRole: (id, role) => request(`/api/users/${id}/role`, { method: "PATCH", body: JSON.stringify({ role }) })
 };
-

@@ -12,13 +12,9 @@ services:
         generateValue: true
       - key: CLIENT_URL
         value: https://your-app.onrender.com
-      - key: GOOGLE_CALLBACK_URL
-        value: https://your-app.onrender.com/auth/google/callback
-      - key: GITHUB_CALLBACK_URL
-        value: https://your-app.onrender.com/auth/github/callback
       - key: COOKIE_SECURE
         value: "true"
       - key: COOKIE_SAMESITE
         value: "lax"
-      - key: DEV_LOGIN_ENABLED
-        value: "false"
+      - key: ADMIN_EMAILS
+        value: admin@your-domain.com
