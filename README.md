@@ -12,7 +12,7 @@ This is a mini Library Management System challenge implementation:
 
 - Frontend: React (Vite) + TypeScript
 - Backend: Node.js (Express) + TypeScript
-- DB: SQLite + Prisma
+- DB: Postgres + Prisma
 - Auth: OAuth (Passport) + JWT cookie sessions
 
 ## Local setup
@@ -23,13 +23,21 @@ This is a mini Library Management System challenge implementation:
 cp .env.example .env
 ```
 
-2) Install dependencies
+2) Set `DATABASE_URL` in `.env`
+
+Use any Postgres instance (local Docker, Render Postgres external URL, etc.). Example:
+
+```bash
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE"
+```
+
+3) Install dependencies
 
 ```bash
 npm install
 ```
 
-3) Set up database (migrate + seed)
+4) Set up database (migrate + seed)
 
 ```bash
 npm -w server run prisma:generate
@@ -37,7 +45,7 @@ npm -w server run prisma:migrate
 npm -w server run db:seed
 ```
 
-4) Run the app (API + client)
+5) Run the app (API + client)
 
 ```bash
 npm run dev
@@ -84,11 +92,30 @@ If not set, the app uses a safe fallback (non-LLM) for both endpoints.
 
 ## Deployment (one simple approach)
 
-### Backend (Render / Fly.io / Railway)
+### Render (recommended)
+
+This repo includes a Render Blueprint at `/Users/yararammal/Desktop/work/library/render.yaml`.
+
+1) Push this repo to GitHub.
+2) In Render: **New > Blueprint** and select your repo.
+3) During setup, set the `sync: false` variables (OAuth + OpenAI keys).
+
+The Blueprint auto-wires `CLIENT_URL` and `VITE_API_BASE_URL` using Render’s `RENDER_EXTERNAL_HOSTNAME`.
+
+OAuth callback URLs (use your actual API domain if you rename the service):
+
+- GitHub: `https://mlms-api.onrender.com/auth/github/callback`
+- Google: `https://mlms-api.onrender.com/auth/google/callback`
+
+Notes:
+- Free Render Postgres expires after ~30 days unless you upgrade.
+- Free web services can’t use persistent disks (so Postgres is the simplest option).
+
+### Backend (other hosts)
 
 - Set `CLIENT_URL` to your deployed frontend URL
 - Set `COOKIE_SECURE=true` and `COOKIE_SAMESITE=none` if frontend and backend are on different domains
-- Use a persistent disk/volume for SQLite, or switch Prisma to Postgres for a real production setup
+- Use Postgres for a real production setup
 
 ### Frontend (Vercel / Netlify)
 
@@ -98,4 +125,3 @@ If not set, the app uses a safe fallback (non-LLM) for both endpoints.
 
 - GitHub repo: `<YOUR_GITHUB_REPO_URL>`
 - Live app: `<YOUR_LIVE_URL>`
-

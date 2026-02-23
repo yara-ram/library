@@ -5,11 +5,16 @@ const boolFromEnv = (value: string | undefined, fallback: boolean) => {
   return value === "1" || value.toLowerCase() === "true";
 };
 
+const normalizeUrl = (value: string) => {
+  if (value.startsWith("http://") || value.startsWith("https://")) return value;
+  return `https://${value}`;
+};
+
 const envSchema = z.object({
   PORT: z.coerce.number().default(3001),
   DATABASE_URL: z.string().min(1),
   SESSION_SECRET: z.string().min(16),
-  CLIENT_URL: z.string().url().default("http://localhost:5173"),
+  CLIENT_URL: z.string().min(1).default("http://localhost:5173"),
 
   GITHUB_CLIENT_ID: z.string().optional(),
   GITHUB_CLIENT_SECRET: z.string().optional(),
@@ -43,6 +48,7 @@ const raw = {
 };
 
 export const env = envSchema.parse(raw);
+env.CLIENT_URL = normalizeUrl(env.CLIENT_URL);
 
 export const cookieOptions = {
   httpOnly: true,
