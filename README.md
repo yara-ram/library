@@ -1,149 +1,67 @@
-# Mini Library Management System (React + Node)
+# Mini Library Management System
+Full-stack JS mini library management system with SSO auth, roles/permissions, book CRUD, check-in/out, search, and optional AI enrichment.
 
-This is a mini Library Management System challenge implementation:
-
-- Book management (add/edit/delete)
-- Check-in / check-out (borrow/return)
-- Search (title/author/ISBN/publisher/tags)
-- Auth with SSO (GitHub + Google OAuth) + roles (ADMIN / STAFF / MEMBER)
-- AI features (optional): metadata suggestions + “library assistant” (OpenAI if configured, with fallback)
+## Features
+- SSO authentication (Google and GitHub)
+- Roles: `admin`, `librarian`, `member` (RBAC enforced on API + reflected in UI)
+- Books: add/edit/delete + metadata (title, author, ISBN, genre, year, description)
+- Check-out / check-in (borrow/return) with borrower tracking + due date
+- Search across title/author/ISBN/genre/description
+- AI enrichment (optional): suggest genre/description/tags for a book
 
 ## Tech
-
-- Frontend: React (Vite) + TypeScript
-- Backend: Node.js (Express) + TypeScript
-- DB: Postgres + Prisma
-- Auth: OAuth (Passport) + JWT cookie sessions
+- Backend: Node.js + Express + PostgreSQL + Passport (OAuth) + sessions
+- Frontend: React (Vite) + Tailwind
+- Deployment: Render (single web service + Postgres)
 
 ## Local setup
+### 1) Install
+```bash
+npm install
+npm --prefix server install
+npm --prefix client install
+```
 
-1) Create env file
-
+### 2) Configure env
+Copy `.env.example` to `.env` and fill values:
 ```bash
 cp .env.example .env
 ```
 
-2) Set `DATABASE_URL` in `.env`
+Required for local login via SSO:
+- `SESSION_SECRET`
+- `CLIENT_URL` (default `http://localhost:5173`)
+- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` and/or `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`
+- `GOOGLE_CALLBACK_URL` and/or `GITHUB_CALLBACK_URL` (defaults in `.env.example` match local dev)
 
-Use any Postgres instance (local Docker, Render Postgres external URL, etc.). Example:
+Optional:
+- `OPENAI_API_KEY` for AI enrichment
+- `ADMIN_EMAILS` (comma-separated) to auto-assign `admin` role on first SSO login
+- `VITE_API_BASE_URL` (leave empty for Vite proxy in dev; keep empty in production)
+- `VITE_DEV_LOGIN_ENABLED` (UI toggle for the local dev login form)
 
-```bash
-DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE"
-```
-
-3) Install dependencies
-
-```bash
-npm install
-```
-
-4) Set up database (migrate + seed)
-
-```bash
-npm -w server run prisma:generate
-npm -w server run prisma:migrate
-npm -w server run db:seed
-```
-
-5) Run the app (API + client)
-
+### 3) Run
 ```bash
 npm run dev
 ```
-
-- API: `http://localhost:3001/health`
 - Client: `http://localhost:5173`
+- API: `http://localhost:3001`
 
-## Sign-in
+## Deployment (Render)
+This repo includes `render.yaml` for a Blueprint deploy, but note: **the “database” is in-memory only** (no external persistence). On Render, data resets whenever the service restarts or redeploys.
 
-### SSO (preferred)
+High-level steps:
+1. Create a new Render Blueprint from your GitHub repo.
+2. Render provisions a web service.
+3. Set env vars in the Render dashboard:
+   - `SESSION_SECRET`
+   - `CLIENT_URL` (your Render app URL, e.g. `https://your-app.onrender.com`)
+   - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` and/or `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`
+   - `GOOGLE_CALLBACK_URL` / `GITHUB_CALLBACK_URL` (match the values configured in your OAuth apps)
+   - `COOKIE_SECURE=true` and `COOKIE_SAMESITE=lax`
+   - (optional) `OPENAI_API_KEY`, `ADMIN_EMAILS`
 
-Create OAuth apps and set these in `.env`:
-
-- GitHub: `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`
-  - Callback URL: `http://localhost:3001/auth/github/callback`
-- Google: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
-  - Callback URL: `http://localhost:3001/auth/google/callback`
-
-### Dev login (local only)
-
-If you don’t want to set up OAuth for local testing, the app includes a **dev login** endpoint that is **disabled in production**.
-
-Seeded users:
-
-- `admin@demo.local` (ADMIN)
-- `staff@demo.local` (STAFF)
-- `member@demo.local` (MEMBER)
-
-## Roles & permissions
-
-- MEMBER: search + check in/out books (self-service)
-- STAFF: MEMBER permissions + AI cataloging tools
-- ADMIN: full access (CRUD books + manage user roles)
-
-## AI features (optional)
-
-Set in `.env`:
-
-- `OPENAI_API_KEY`
-- `OPENAI_MODEL` (default: `gpt-4o-mini`)
-
-If not set, the app uses a safe fallback (non-LLM) for both endpoints.
-
-## Deployment (one simple approach)
-
-### Render (recommended)
-
-This repo includes a Render Blueprint at `/Users/yararammal/Desktop/work/library/render.yaml`.
-
-1) Push this repo to GitHub.
-2) In Render: **New > Blueprint** and select your repo.
-3) During setup, set the `sync: false` variables (OAuth + OpenAI keys).
-
-The Blueprint auto-wires `CLIENT_URL` and `VITE_API_BASE_URL` using Render’s `RENDER_EXTERNAL_HOSTNAME`.
-
-OAuth callback URLs (use your actual API domain if you rename the service):
-
-- GitHub: `https://mlms-api.onrender.com/auth/github/callback`
-- Google: `https://mlms-api.onrender.com/auth/google/callback`
-
-Notes:
-- Free Render Postgres expires after ~30 days unless you upgrade.
-- Free web services can’t use persistent disks (so Postgres is the simplest option).
-
-## Docker (API only)
-
-If you see `failed to read dockerfile: open Dockerfile: no such file or directory`, it means you (or your deploy platform) is trying to do a Docker build but the repo didn't have a `Dockerfile` yet.
-
-This repo now includes a root `Dockerfile` that builds and runs the **API** (the React app is still meant to be deployed separately as static files, as shown in `render.yaml`).
-
-Build:
-
-```bash
-docker build -t mlms-api .
-```
-
-Run (you must provide `DATABASE_URL` and `SESSION_SECRET`):
-
-```bash
-docker run --rm -p 3001:3001 \
-  -e DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DB" \
-  -e SESSION_SECRET="change-me-to-a-long-random-string" \
-  -e CLIENT_URL="http://localhost:5173" \
-  mlms-api
-```
-
-### Backend (other hosts)
-
-- Set `CLIENT_URL` to your deployed frontend URL
-- Set `COOKIE_SECURE=true` and `COOKIE_SAMESITE=none` if frontend and backend are on different domains
-- Use Postgres for a real production setup
-
-### Frontend (Vercel / Netlify)
-
-- Set `VITE_API_BASE_URL` to your deployed backend base URL
-
-## Links (fill in after you deploy)
-
-- GitHub repo: `<YOUR_GITHUB_REPO_URL>`
-- Live app: `<YOUR_LIVE_URL>`
+## Links
+- GitHub repo: (you’ll paste your repo URL after pushing)
+- Live deployment: (you’ll paste your Render URL after deploying)
+Note: this app uses the common convention **check-out = borrowed** and **check-in = returned/available**.
