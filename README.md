@@ -76,7 +76,10 @@ This repo includes `render.yaml` + `Dockerfile` for a one-click-ish deployment.
 Optional AI:
 - Set `OPENAI_API_KEY` to enable AI metadata suggestions.
 
+### Free tier note
+
+Render free tier services don’t support persistent disks in the Blueprint, so the default `DATABASE_URL` uses `file:/tmp/prod.db` (ephemeral). Data will reset on redeploy/restart.
+
 ## Notes
 
 - Terminology: this app uses the standard convention **Check out = borrow**, **Check in = return**.
-
