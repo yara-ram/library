@@ -111,6 +111,28 @@ Notes:
 - Free Render Postgres expires after ~30 days unless you upgrade.
 - Free web services can’t use persistent disks (so Postgres is the simplest option).
 
+## Docker (API only)
+
+If you see `failed to read dockerfile: open Dockerfile: no such file or directory`, it means you (or your deploy platform) is trying to do a Docker build but the repo didn't have a `Dockerfile` yet.
+
+This repo now includes a root `Dockerfile` that builds and runs the **API** (the React app is still meant to be deployed separately as static files, as shown in `render.yaml`).
+
+Build:
+
+```bash
+docker build -t mlms-api .
+```
+
+Run (you must provide `DATABASE_URL` and `SESSION_SECRET`):
+
+```bash
+docker run --rm -p 3001:3001 \
+  -e DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DB" \
+  -e SESSION_SECRET="change-me-to-a-long-random-string" \
+  -e CLIENT_URL="http://localhost:5173" \
+  mlms-api
+```
+
 ### Backend (other hosts)
 
 - Set `CLIENT_URL` to your deployed frontend URL
