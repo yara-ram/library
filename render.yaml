@@ -4,6 +4,7 @@ services:
     env: docker
     plan: free
     autoDeploy: true
+    healthCheckPath: /api/health
     disk:
       name: mini-library-data
       mountPath: /var/data
@@ -29,4 +30,3 @@ services:
         sync: false
       - key: OPENAI_MODEL
         value: gpt-4o-mini
-
