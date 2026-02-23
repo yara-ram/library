@@ -8,8 +8,8 @@ const boolFromString = (value, defaultValue) => {
 const EnvSchema = z.object({
   NODE_ENV: z.string().optional(),
   PORT: z.coerce.number().default(3001),
-  SESSION_SECRET: z.string().min(16),
-  CLIENT_URL: z.string().url(),
+  SESSION_SECRET: z.string().min(16).optional().default("dev-secret-change-me"),
+  CLIENT_URL: z.string().optional().default("http://localhost:5173"),
 
   COOKIE_SECURE: z.string().optional(),
   COOKIE_SAMESITE: z.string().optional(),
